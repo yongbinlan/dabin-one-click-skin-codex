@@ -1,0 +1,4 @@
+interface:
+  display_name: "大斌一键换肤"
+  short_description: "Windows x64 Codex 自定义图片换肤"
+  default_prompt: "使用大斌一键换肤，将我提供的图片应用到 Windows x64 Codex。"

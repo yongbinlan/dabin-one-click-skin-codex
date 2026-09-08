@@ -1,0 +1,17 @@
+{
+  "name": "heige-codex-skin-studio",
+  "version": "5.5.16",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "heige-codex-skin": "src/cli.mjs"
+  },
+  "scripts": {
+    "apply": "node src/cli.mjs apply",
+    "doctor": "node src/cli.mjs doctor",
+    "list": "node src/cli.mjs list",
+    "status": "node src/cli.mjs status"
+  }
+}
