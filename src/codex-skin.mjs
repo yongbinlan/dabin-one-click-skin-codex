@@ -30,7 +30,10 @@ async function locateTarget() {
   let targets;
   try { const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(4000) }); targets = await response.json(); }
   catch { throw new Error(`无法连接 Codex 调试端口 ${port}。请打开 Codex 主界面后重试。`); }
-  const target = targets.find((item) => item.type === 'page' && /^app:\/\//.test(item.url || ''));
+  const appPages = targets.filter((item) => item.type === 'page' && /^app:\/\//.test(item.url || ''));
+  const target = appPages.find((item) => item.url === 'app://-/index.html')
+    || appPages.find((item) => /^app:\/\/-\/index\.html/.test(item.url || '') && !/initialRoute=%2F(?:avatar-overlay|detached-window)/.test(item.url || ''))
+    || appPages[0];
   if (!target?.webSocketDebuggerUrl) throw new Error('已连接调试端口，但没有发现 Codex 主窗口。请打开含侧栏和输入框的主界面后重试。');
   return target;
 }

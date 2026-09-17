@@ -26,7 +26,7 @@ Windows x64 Codex Desktop 的本地图片换肤 Skill。选择本机图片后，
 scripts/StartDabinSkin.bat
 ```
 
-如需在 Codex 对话中调用，请在 Codex 的 Skills 导入入口选择这个包含 `SKILL.md` 的文件夹；重新开启一轮对话后即可输入：
+如需在 Codex 对话中调用，请在新对话中使用 `$skill-installer`，并提供仓库地址 `https://github.com/yongbinlan/dabin-one-click-skin-codex` 安装此 Skill；安装完成后重新开启一轮对话，再输入：
 
 ```text
 使用大斌一键换肤，将这张图片应用到 Codex。
