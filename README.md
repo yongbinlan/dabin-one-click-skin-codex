@@ -18,15 +18,15 @@ Windows x64 Codex Desktop 的本地图片换肤 Skill。选择本机图片后，
 
 支持 PNG、JPG/JPEG、BMP、WebP，单张图片最大 8 MB。用户消息会采用深色背景与白色文字，保证在图片主题下仍可阅读。
 
-## Skill 安装
+## 安装与启动
 
-将完整文件夹放进：
+无需放进固定路径。下载或解压完整文件夹到任意本地位置后，直接双击：
 
 ```text
-%USERPROFILE%\.codex\skills\dabin-one-click-skin
+scripts/StartDabinSkin.bat
 ```
 
-新开一轮 Codex 对话后即可输入：
+如需在 Codex 对话中调用，请在 Codex 的 Skills 导入入口选择这个包含 `SKILL.md` 的文件夹；重新开启一轮对话后即可输入：
 
 ```text
 使用大斌一键换肤，将这张图片应用到 Codex。
