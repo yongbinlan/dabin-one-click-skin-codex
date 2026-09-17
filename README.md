@@ -1,4 +1,4 @@
-# 大斌 · Codex 换肤
+# Codex 一键换肤 · 大斌
 
 Windows x64 Codex Desktop 的本地图片换肤 Skill。选择本机图片后，它通过已开启的本机 CDP 回环接口将样式注入当前 Codex 页面；不会改写 Codex 程序文件、`app.asar`、登录状态或账户配置。
 
