@@ -1,60 +1,35 @@
-param(
+﻿param(
   [ValidateSet('Check','Apply','Status','Pause','Restore')][string]$Action = 'Check',
   [string]$ImagePath
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$engine = Join-Path $root 'payload\engine'
+$cli = Join-Path $root 'src\codex-skin.mjs'
 $node = (Get-Command node.exe -ErrorAction Stop).Source
 
-function Require-WindowsX64 {
+function Assert-Requirements {
   if (-not [Environment]::Is64BitOperatingSystem -or -not [Environment]::Is64BitProcess) {
-    throw 'Run this launcher with 64-bit Windows PowerShell.'
+    throw '请使用 64 位 Windows PowerShell 运行此启动器。'
   }
+  if (-not (Test-Path -LiteralPath $cli)) { throw '原创换肤引擎文件缺失：src\codex-skin.mjs。' }
+  $major = [int]((& $node --version).Trim().TrimStart('v').Split('.')[0])
+  if ($major -lt 22) { throw '需要 Node.js 22 或更高版本。' }
 }
 
-function Convert-ThemeImage([string]$Path) {
-  if (-not (Test-Path -LiteralPath $Path)) { throw "Image not found: $Path" }
-  Add-Type -AssemblyName System.Drawing
-  $source = [Drawing.Image]::FromFile($Path)
-  try {
-    $width = [Math]::Min(1280, $source.Width)
-    $height = [Math]::Max(1, [int][Math]::Round($source.Height * ($width / [double]$source.Width)))
-    $bitmap = [Drawing.Bitmap]::new($width, $height)
-    try {
-      $graphics = [Drawing.Graphics]::FromImage($bitmap)
-      try { $graphics.DrawImage($source, 0, 0, $width, $height) } finally { $graphics.Dispose() }
-      $output = Join-Path $root 'payload\selected-theme.jpg'
-      $codec = [Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' } | Select-Object -First 1
-      $params = [Drawing.Imaging.EncoderParameters]::new(1)
-      try {
-        $params.Param[0] = [Drawing.Imaging.EncoderParameter]::new([Drawing.Imaging.Encoder]::Quality, [long]88)
-        $bitmap.Save($output, $codec, $params)
-      } finally { $params.Dispose() }
-      return $output
-    } finally { $bitmap.Dispose() }
-  } finally { $source.Dispose() }
+function Invoke-Skin([string[]]$Arguments) {
+  & $node $cli @Arguments
+  if ($LASTEXITCODE -ne 0) { throw '换肤引擎未完成操作。请查看上方具体错误。' }
 }
 
-Require-WindowsX64
-if (-not (Test-Path "$engine\src\cli.mjs")) { throw 'The embedded theme engine is missing.' }
-if ([int]((& $node --version).TrimStart('v').Split('.')[0]) -lt 22) { throw 'Node.js 22 or newer is required.' }
-
+Assert-Requirements
 switch ($Action) {
-  'Check' { Write-Output 'Windows x64 and embedded engine checks passed.'; exit 0 }
-  'Status' { & $node "$engine\src\cli.mjs" status --port 9341; exit $LASTEXITCODE }
-  'Pause' { & "$engine\scripts\windows\pause.ps1" -Port 9341; exit $LASTEXITCODE }
-  'Restore' { & "$engine\scripts\windows\restore.ps1" -Port 9341; exit $LASTEXITCODE }
+  'Check'   { Invoke-Skin @('check') }
+  'Status'  { Invoke-Skin @('status') }
+  'Pause'   { Invoke-Skin @('pause') }
+  'Restore' { Invoke-Skin @('restore') }
   'Apply' {
-    $normalized = Convert-ThemeImage $ImagePath
-    $created = & $node "$engine\src\cli.mjs" create --image $normalized --name 'Dabin Custom Skin'
-    if ($LASTEXITCODE -ne 0) { throw ($created -join "`n") }
-    $theme = ($created -join "`n") | ConvertFrom-Json
-    if (-not $theme.id) { throw 'Theme creation did not return an ID.' }
-    & "$engine\scripts\windows\apply.ps1" -Theme $theme.id -Port 9341
-    if ($LASTEXITCODE -ne 0) { throw 'Theme apply failed.' }
-    & $node "$engine\src\cli.mjs" status --port 9341
-    exit $LASTEXITCODE
+    if ([string]::IsNullOrWhiteSpace($ImagePath)) { throw '请提供 -ImagePath 图片绝对路径。' }
+    Invoke-Skin @('apply', $ImagePath)
   }
 }

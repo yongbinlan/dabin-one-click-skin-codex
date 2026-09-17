@@ -1,28 +1,26 @@
 ---
 name: dabin-one-click-skin
-description: Create, apply, check, pause, or restore image themes for Codex Desktop on Windows x64. Use for requests to change Codex skin/wallpaper or troubleshoot a custom theme.
+description: Create, apply, inspect, pause, or restore a local image skin for Codex Desktop on Windows x64. Use when the user asks to change the Codex background or troubleshoot this skin.
 ---
 
-# 大斌一键换肤
+# 大斌 · Codex 换肤
 
-Use this skill only with Windows x64 Codex Desktop. It applies themes through loopback CDP on `127.0.0.1:9341`; it does not modify Codex binaries, `app.asar`, signatures, credentials, or account settings.
+使用本技能为 Windows x64 的 Codex Desktop 应用本地图片主题。它通过回环 CDP（默认 `127.0.0.1:9341`）在当前页面注入 CSS；不改写 Codex 程序文件、账户、登录态或安全配置。
 
-## User-facing entry point
+## 选择操作
 
-Run `scripts/StartDabinSkin.bat` to open the image picker. It accepts PNG, JPG/JPEG, BMP, and WebP. The launcher normalizes an image, creates a user theme, applies it to the active Codex window, and reports the exact result.
+- 用户要选图或直观操作时，运行 `scripts/StartDabinSkin.bat`。
+- 用户提供了图片绝对路径时，运行 `scripts/dabin-skin.ps1 -Action Apply -ImagePath <绝对路径>`。
+- 应用前可运行 `-Action Check`；它会验证 Node.js 22+ 与当前 Codex 主窗口的 CDP 连接。
+- 应用后必须运行 `-Action Status`。仅当输出 `mode: active`、`injected: true` 且 `controller: running` 时，才报告主题已生效。
+- 用户要求临时移除或恢复原生界面时，运行 `-Action Restore`。不要删除 `runtime/` 中的状态文件代替恢复操作。
 
-## Agent workflow
+## 交互与失败处理
 
-1. Run `scripts/dabin-skin.ps1 -Action Check` before applying a theme.
-2. For an image request, run `-Action Apply -ImagePath <absolute path>`. The image is downscaled to 1280px wide and stored as JPEG to avoid oversized inline CSS payloads. User messages stay on a dark bubble with white text for reliable contrast.
-3. Verify with `-Action Status`. Report visual success only when `mode` is `active`, `failed` is empty, and the renderer CSS includes the returned theme id.
-4. Run `-Action Pause` only when the user asks to remove the theme for the current session. Run `-Action Restore` only when the user asks to restore native Codex; it can disable the persistent skin controller.
+启动器提供图片预览、连接检查、应用和恢复。支持 PNG、JPG/JPEG、BMP、WebP，单张限制 8 MB。启动器状态会按“待连接 → 检测中 → 已连接 → 已应用”变化；只有连接检查成功后才启用“应用到 Codex”。界面使用不透明工作台保障控件可读性，用户消息固定为深底白字。
 
-## Boundaries
+如果检查或应用失败，先保留错误原文。最常见原因是 Codex 仅在后台、停在登录页，或尚未打开实际主窗口；请用户打开含侧栏和输入框的 Codex 主界面后重试。不要尝试结束进程、修改 Codex 安装目录、重启系统或要求用户重新登录。
 
-- Applying can restart Codex but should not require sign-in.
-- Do not enable persistent skin without the user's explicit request.
-- If the engine reports a Store/Win32 or process-ownership conflict, stop and show the exact message. Do not kill processes or uninstall Codex.
-- Keep source images local. Never package a user's images, logs, profile state, or authentication data.
+图片数据和运行状态仅保存于本技能的 `runtime/` 目录，不能提交到仓库，也不能对外上传。
 
-The embedded engine is a modified HeiGe Codex Skin Studio runtime. See `NOTICE.md` and `LICENSE` for upstream attribution and licensing.
+详细图文说明见 [使用教程](docs/使用教程.md)。

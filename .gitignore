@@ -1,0 +1,11 @@
+# Local runtime state can contain a user's image; never commit it.
+runtime/state.json
+runtime/controller.pid
+runtime/*.log
+
+# Local diagnostics.
+logs/
+*.log
+
+# Local rollback copies.
+*.bak
