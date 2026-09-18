@@ -34,6 +34,10 @@ scripts/StartDabinSkin.bat
 
 命令行用法、状态核验和故障排查见 [使用教程](docs/使用教程.md)。
 
+## 桌面快捷方式图标（可选）
+
+完整包附带 `assets/dabin-codex-skin-icon.ico`。若 Windows 为 `StartDabinSkin.bat` 显示通用批处理图标，可先为它创建快捷方式，再在“属性 → 快捷方式 → 更改图标”中选择该 `.ico` 文件。图标与启动器使用相同的深墨、朱红和宣纸白配色；不会影响启动参数或换肤行为。
+
 ## 技术边界
 
 - 仅适用于 Windows x64、Node.js 22+、已运行的 Codex Desktop。

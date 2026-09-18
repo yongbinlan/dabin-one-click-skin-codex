@@ -1,4 +1,4 @@
 interface:
   display_name: "大斌 · Codex 换肤"
-  short_description: "原创本地图片换肤与状态核验"
+  short_description: "原创图片换肤、图形启动器与状态核验"
   default_prompt: "使用大斌 · Codex 换肤，将我提供的图片应用到当前 Windows x64 Codex，并核验实际注入状态。"
