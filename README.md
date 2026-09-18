@@ -2,6 +2,12 @@
 
 Windows x64 Codex Desktop 的本地图片换肤 Skill。选择本机图片后，它通过已开启的本机 CDP 回环接口将样式注入当前 Codex 页面；不会改写 Codex 程序文件、`app.asar`、登录状态或账户配置。
 
+<p align="center">
+  <img src="assets/dabin-codex-skin-icon.png" width="180" alt="大斌 Codex 换肤图标">
+</p>
+
+> 新版图标以掀开的主题层表现本地换肤，右下角为 Codex 徽章。完整包附带 Windows 多尺寸 `.ico` 文件，可直接用于启动器桌面快捷方式。
+
 ## 界面预览
 
 ![大斌 · Codex 换肤启动器界面](docs/images/launcher-interface-v2.png)
