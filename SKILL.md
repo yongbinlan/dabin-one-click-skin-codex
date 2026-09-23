@@ -3,9 +3,11 @@ name: dabin-one-click-skin
 description: Create, apply, inspect, pause, or restore a local image skin for Codex Desktop on Windows x64. Use when the user asks to change the Codex background or troubleshoot this skin.
 ---
 
-# 大斌 · Codex 换肤
+# 大硕主题中心
 
 使用本技能为 Windows x64 的 Codex Desktop 应用本地图片主题。它通过回环 CDP（默认 `127.0.0.1:9341`）在当前页面注入 CSS；不改写 Codex 程序文件、账户、登录态或安全配置。
+
+展示名称已由“大斌 · Codex 换肤”更新为“大硕主题中心”；技术标识仍为 `$dabin-one-click-skin`。本包是独立轻量图片换肤实现，不是第三方完整主题菜单移植版，不据名称推断内置主题库或常驻管理能力。用户若已有另一套引擎在控制同一窗口，先确认目标实现，不直接叠加应用或停止另一控制器。
 
 ## 选择操作
 

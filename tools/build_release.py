@@ -5,7 +5,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / "dabin-one-click-codex-skin-v2.5.3.zip"
+OUTPUT = ROOT.parent / "dashuo-theme-center-v2.6.0.zip"
 ARCHIVE_ROOT = "dabin-one-click-skin"
 FILES = [
     ".gitignore",
@@ -18,7 +18,8 @@ FILES = [
     "assets/dabin-codex-skin-icon.png",
     "assets/default-launcher-background-960x720.png",
     "assets/default-launcher-background.png",
-    "docs/images/launcher-interface-v2.png",
+    "docs/images/launcher-interface-v2.6.png",
+    "docs/engine-choice.md",
     "docs/使用教程.md",
     "scripts/dabin-skin.ps1",
     "scripts/DabinLauncher.ps1",

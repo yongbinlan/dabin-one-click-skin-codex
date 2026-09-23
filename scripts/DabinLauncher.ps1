@@ -9,7 +9,7 @@ $script:selectedImage = $null
 $script:connectionReady = $false
 
 $form = New-Object Windows.Forms.Form
-$form.Text = '大斌 · Codex 换肤'
+$form.Text = '大硕主题中心'
 $form.ClientSize = New-Object Drawing.Size(960, 720)
 $form.MinimumSize = New-Object Drawing.Size(976, 759)
 $form.MaximumSize = New-Object Drawing.Size(976, 759)
@@ -57,7 +57,7 @@ $headerPlate = New-Object Windows.Forms.Panel
 $headerPlate.SetBounds(26, 20, 362, 78)
 $headerPlate.BackColor = [Drawing.Color]::FromArgb(255, 248, 237)
 $form.Controls.Add($headerPlate)
-$title = New-Label '大斌 · Codex 换肤' 16 11 330 31 18 ([Drawing.Color]::FromArgb(88, 34, 29)) $true
+$title = New-Label '大硕主题中心' 16 11 330 31 18 ([Drawing.Color]::FromArgb(88, 34, 29)) $true
 $subtitle = New-Label '选择本地图片，为当前 Codex 主界面换肤' 17 44 326 20 9 ([Drawing.Color]::FromArgb(99, 67, 54))
 $rule = New-Object Windows.Forms.Panel
 $rule.SetBounds(16, 67, 330, 2)
