@@ -1,4 +1,6 @@
-﻿Add-Type -AssemblyName System.Windows.Forms
+﻿param([switch]$SelfTest)
+
+Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [Windows.Forms.Application]::EnableVisualStyles()
 
@@ -7,6 +9,7 @@ $packageRoot = Split-Path -Parent $scriptRoot
 $backgroundPath = Join-Path $packageRoot 'assets\default-launcher-background-960x720.png'
 $script:selectedImage = $null
 $script:connectionReady = $false
+$script:UiFontFamily = if ([Drawing.FontFamily]::Families.Name -contains 'Microsoft YaHei UI') { 'Microsoft YaHei UI' } else { 'Segoe UI' }
 
 $form = New-Object Windows.Forms.Form
 $form.Text = '大硕主题中心'
@@ -19,14 +22,14 @@ $form.MaximizeBox = $false
 $form.BackColor = [Drawing.Color]::FromArgb(244, 228, 210)
 $form.ForeColor = [Drawing.Color]::FromArgb(40, 28, 24)
 $form.AutoScaleMode = [Windows.Forms.AutoScaleMode]::None
-$form.Font = New-Object Drawing.Font('Segoe UI', 10)
+$form.Font = New-Object Drawing.Font($script:UiFontFamily, 10.5)
 
 function New-Label([string]$Text, [int]$X, [int]$Y, [int]$Width, [int]$Height, [float]$Size, [Drawing.Color]$Color, [bool]$Bold = $false) {
   $label = New-Object Windows.Forms.Label
   $label.Text = $Text
   $label.SetBounds($X, $Y, $Width, $Height)
   $label.ForeColor = $Color
-  $label.Font = New-Object Drawing.Font('Segoe UI', $Size, $(if ($Bold) { [Drawing.FontStyle]::Bold } else { [Drawing.FontStyle]::Regular }))
+  $label.Font = New-Object Drawing.Font($script:UiFontFamily, $Size, $(if ($Bold) { [Drawing.FontStyle]::Bold } else { [Drawing.FontStyle]::Regular }))
   return $label
 }
 
@@ -35,11 +38,14 @@ function New-Button([string]$Text, [int]$X, [int]$Y, [int]$Width, [Drawing.Color
   $button.Text = $Text
   $button.SetBounds($X, $Y, $Width, 44)
   $button.FlatStyle = [Windows.Forms.FlatStyle]::Flat
+  $button.UseVisualStyleBackColor = $false
   $button.FlatAppearance.BorderSize = if ($Primary) { 0 } else { 1 }
   $button.FlatAppearance.BorderColor = [Drawing.Color]::FromArgb(167, 132, 112)
+  $button.FlatAppearance.MouseOverBackColor = if ($Primary) { [Drawing.Color]::FromArgb(145, 34, 29) } else { [Drawing.Color]::FromArgb(245, 224, 207) }
+  $button.FlatAppearance.MouseDownBackColor = if ($Primary) { [Drawing.Color]::FromArgb(114, 27, 24) } else { [Drawing.Color]::FromArgb(235, 208, 190) }
   $button.BackColor = $Back
   $button.ForeColor = $Fore
-  $button.Font = New-Object Drawing.Font('Segoe UI', 10, [Drawing.FontStyle]::Bold)
+  $button.Font = New-Object Drawing.Font($script:UiFontFamily, 10.5, [Drawing.FontStyle]::Bold)
   $button.Cursor = [Windows.Forms.Cursors]::Hand
   return $button
 }
@@ -58,7 +64,7 @@ $headerPlate.SetBounds(26, 20, 362, 78)
 $headerPlate.BackColor = [Drawing.Color]::FromArgb(255, 248, 237)
 $form.Controls.Add($headerPlate)
 $title = New-Label '大硕主题中心' 16 11 330 31 18 ([Drawing.Color]::FromArgb(88, 34, 29)) $true
-$subtitle = New-Label '选择本地图片，为当前 Codex 主界面换肤' 17 44 326 20 9 ([Drawing.Color]::FromArgb(99, 67, 54))
+$subtitle = New-Label '选择本地图片，为当前 Codex 主界面换肤' 17 44 326 20 10 ([Drawing.Color]::FromArgb(79, 48, 39))
 $rule = New-Object Windows.Forms.Panel
 $rule.SetBounds(16, 67, 330, 2)
 $rule.BackColor = [Drawing.Color]::FromArgb(180, 52, 43)
@@ -70,7 +76,7 @@ $connectionChip.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $connectionChip.SetBounds(842, 28, 92, 30)
 $connectionChip.BackColor = [Drawing.Color]::FromArgb(136, 43, 36)
 $connectionChip.ForeColor = [Drawing.Color]::FromArgb(255, 248, 237)
-$connectionChip.Font = New-Object Drawing.Font('Segoe UI', 9, [Drawing.FontStyle]::Bold)
+$connectionChip.Font = New-Object Drawing.Font($script:UiFontFamily, 10, [Drawing.FontStyle]::Bold)
 $form.Controls.Add($connectionChip)
 
 $workbench = New-Object Windows.Forms.Panel
@@ -88,7 +94,7 @@ $topRule.SetBounds(0, 0, 910, 4)
 $topRule.BackColor = [Drawing.Color]::FromArgb(181, 47, 39)
 $workbench.Controls.Add($topRule)
 $workbench.Controls.Add((New-Label '主题工作台' 18 14 160 23 12 ([Drawing.Color]::FromArgb(61, 40, 32)) $true))
-$workbench.Controls.Add((New-Label '选择图片 → 检查连接 → 应用主题' 18 37 330 18 9 ([Drawing.Color]::FromArgb(124, 82, 64))))
+$workbench.Controls.Add((New-Label '选择图片 → 检查连接 → 应用主题' 18 37 360 18 10 ([Drawing.Color]::FromArgb(105, 59, 46)) $true))
 
 $previewFrame = New-Object Windows.Forms.Panel
 $previewFrame.SetBounds(18, 57, 144, 112)
@@ -105,26 +111,25 @@ $emptyState.Dock = [Windows.Forms.DockStyle]::Fill
 $emptyState.BackColor = [Drawing.Color]::FromArgb(249, 237, 224)
 $emptyState.Cursor = [Windows.Forms.Cursors]::Hand
 $emptyState.Controls.Add((New-Label '＋' 48 16 48 38 23 ([Drawing.Color]::FromArgb(181, 47, 39))))
-$emptyText = New-Label '选择主题图片' 16 57 112 19 9.5 ([Drawing.Color]::FromArgb(88, 34, 29)) $true
+$emptyText = New-Label '选择主题图片' 16 57 112 19 10.5 ([Drawing.Color]::FromArgb(88, 34, 29)) $true
 $emptyText.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
-$emptyHint = New-Label '点击开始预览' 16 79 112 16 8.5 ([Drawing.Color]::FromArgb(124, 82, 64))
+$emptyHint = New-Label '点击开始预览' 16 79 112 16 9.5 ([Drawing.Color]::FromArgb(105, 59, 46))
 $emptyHint.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $emptyState.Controls.AddRange(@($emptyText, $emptyHint))
 $previewFrame.Controls.Add($emptyState)
 
 $fileTitle = New-Label '尚未选择主题图片' 182 61 280 23 10.5 ([Drawing.Color]::FromArgb(61, 40, 32)) $true
-$fileInfo = New-Label "支持 PNG、JPG/JPEG、BMP、WebP`n单张图片最大 8 MB，仅在本机使用。" 182 87 280 39 8.7 ([Drawing.Color]::FromArgb(124, 82, 64))
+$fileInfo = New-Label "支持 PNG、JPG/JPEG、BMP、WebP`n单张图片最大 8 MB，仅在本机使用。" 182 87 280 39 10 ([Drawing.Color]::FromArgb(94, 56, 44))
 $choose = New-Button '选择图片' 182 135 260 ([Drawing.Color]::FromArgb(255, 248, 237)) ([Drawing.Color]::FromArgb(126, 42, 35))
 $choose.FlatAppearance.BorderColor = [Drawing.Color]::FromArgb(153, 57, 48)
 $workbench.Controls.AddRange(@($fileTitle, $fileInfo, $choose))
 
-$check = New-Button '检查连接' 490 74 180 ([Drawing.Color]::FromArgb(255, 248, 237)) ([Drawing.Color]::FromArgb(126, 42, 35))
-$check.FlatAppearance.BorderColor = [Drawing.Color]::FromArgb(153, 57, 48)
+$check = New-Button '检查连接' 490 74 180 ([Drawing.Color]::FromArgb(75, 43, 35)) ([Drawing.Color]::FromArgb(255, 248, 237)) $true
 $apply = New-Button '应用到 Codex' 684 74 204 ([Drawing.Color]::FromArgb(181, 47, 39)) ([Drawing.Color]::FromArgb(255, 248, 237)) $true
 $apply.Enabled = $false
-$apply.BackColor = [Drawing.Color]::FromArgb(220, 190, 171)
-$apply.ForeColor = [Drawing.Color]::FromArgb(113, 78, 62)
-$actionInfo = New-Label "连接成功后才可应用主题。`n不会改写 Codex 程序文件。" 490 130 398 38 8.8 ([Drawing.Color]::FromArgb(124, 82, 64))
+$apply.BackColor = [Drawing.Color]::FromArgb(216, 190, 171)
+$apply.ForeColor = [Drawing.Color]::FromArgb(75, 43, 35)
+$actionInfo = New-Label "连接成功后才可应用主题。`n不会改写 Codex 程序文件。" 490 130 398 38 10 ([Drawing.Color]::FromArgb(94, 56, 44))
 $workbench.Controls.AddRange(@($check, $apply, $actionInfo))
 
 $statusBar = New-Object Windows.Forms.Panel
@@ -136,7 +141,7 @@ $statusDot.Text = '●'
 $statusDot.SetBounds(13, 6, 16, 20)
 $statusDot.ForeColor = [Drawing.Color]::FromArgb(181, 47, 39)
 $statusBar.Controls.Add($statusDot)
-$status = New-Label '下一步：选择一张图片开始。' 34 6 670 20 9.2 ([Drawing.Color]::FromArgb(88, 34, 29))
+$status = New-Label '下一步：选择一张图片开始。' 34 6 670 20 10.5 ([Drawing.Color]::FromArgb(70, 37, 30)) $true
 $status.AutoEllipsis = $true
 $statusBar.Controls.Add($status)
 $restore = New-Button '恢复原生' 744 -1 120 ([Drawing.Color]::FromArgb(248, 231, 215)) ([Drawing.Color]::FromArgb(153, 57, 48))
@@ -149,19 +154,19 @@ function Set-ApplyEnabled([bool]$Enabled) {
     $apply.BackColor = [Drawing.Color]::FromArgb(181, 47, 39)
     $apply.ForeColor = [Drawing.Color]::FromArgb(255, 248, 237)
   } else {
-    $apply.BackColor = [Drawing.Color]::FromArgb(220, 190, 171)
-    $apply.ForeColor = [Drawing.Color]::FromArgb(113, 78, 62)
+    $apply.BackColor = [Drawing.Color]::FromArgb(216, 190, 171)
+    $apply.ForeColor = [Drawing.Color]::FromArgb(75, 43, 35)
   }
 }
 
 function Set-Status([string]$Text, [string]$Kind = 'ready') {
   $status.Text = $Text
   switch ($Kind) {
-    'working' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(212, 155, 57); $connectionChip.Text = '●  检测中'; $connectionChip.ForeColor = [Drawing.Color]::FromArgb(255, 232, 182) }
-    'error' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(229, 138, 125); $connectionChip.Text = '●  需检查'; $connectionChip.ForeColor = [Drawing.Color]::FromArgb(255, 205, 198) }
-    'connected' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(94, 155, 120); $connectionChip.Text = '●  已连接'; $connectionChip.ForeColor = [Drawing.Color]::FromArgb(200, 238, 212) }
-    'applied' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(94, 155, 120); $connectionChip.Text = '●  已应用'; $connectionChip.ForeColor = [Drawing.Color]::FromArgb(200, 238, 212) }
-    default { $statusDot.ForeColor = [Drawing.Color]::FromArgb(216, 194, 177); $connectionChip.Text = '●  待连接'; $connectionChip.ForeColor = [Drawing.Color]::FromArgb(255, 246, 237) }
+    'working' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(181, 117, 25); $connectionChip.Text = '●  检测中'; $connectionChip.BackColor = [Drawing.Color]::FromArgb(117, 80, 24); $connectionChip.ForeColor = [Drawing.Color]::White }
+    'error' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(181, 47, 39); $connectionChip.Text = '●  需检查'; $connectionChip.BackColor = [Drawing.Color]::FromArgb(142, 44, 38); $connectionChip.ForeColor = [Drawing.Color]::White }
+    'connected' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(39, 101, 74); $connectionChip.Text = '●  已连接'; $connectionChip.BackColor = [Drawing.Color]::FromArgb(39, 101, 74); $connectionChip.ForeColor = [Drawing.Color]::White }
+    'applied' { $statusDot.ForeColor = [Drawing.Color]::FromArgb(24, 102, 79); $connectionChip.Text = '●  已应用'; $connectionChip.BackColor = [Drawing.Color]::FromArgb(24, 102, 79); $connectionChip.ForeColor = [Drawing.Color]::White }
+    default { $statusDot.ForeColor = [Drawing.Color]::FromArgb(181, 47, 39); $connectionChip.Text = '●  待连接'; $connectionChip.BackColor = [Drawing.Color]::FromArgb(73, 49, 43); $connectionChip.ForeColor = [Drawing.Color]::White }
   }
   [Windows.Forms.Application]::DoEvents()
 }
@@ -254,5 +259,12 @@ $form.Add_FormClosed({
   if ($preview.Image) { $preview.Image.Dispose() }
   if ($art -and $art.Image) { $art.Image.Dispose() }
 })
-[void]$form.ShowDialog()
+if ($SelfTest) {
+  $form.Show()
+  [Windows.Forms.Application]::DoEvents()
+  $form.Close()
+  Write-Output 'Launcher UI self-test passed.'
+} else {
+  [void]$form.ShowDialog()
+}
 $form.Dispose()
