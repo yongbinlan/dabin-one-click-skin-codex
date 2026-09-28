@@ -18,7 +18,7 @@ FILES = [
     "assets/dabin-codex-skin-icon.png",
     "assets/default-launcher-background-960x720.png",
     "assets/default-launcher-background.png",
-    "docs/images/launcher-interface-v2.6.png",
+    "docs/images/launcher-interface-v2.7.png",
     "docs/engine-choice.md",
     "docs/使用教程.md",
     "scripts/dabin-skin.ps1",
