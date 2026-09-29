@@ -68,7 +68,30 @@ function injectExpression(state) {
 
 const removeExpression = `(()=>{document.getElementById('dabin-original-skin-style')?.remove();delete document.documentElement.dataset.dabinSkin;return{removed:true,url:location.href}})()`;
 const inspectExpression = `(()=>{const style=document.getElementById('dabin-original-skin-style');return{injected:Boolean(style),themeId:style?.dataset.themeId||null,url:location.href}})()`;
-async function inject(state) { return evaluate(await locateTarget(), injectExpression(state)); }
+function isCurrentEnabledTheme(state) {
+  const latest = readState();
+  return latest.enabled === true &&
+    latest.themeId === state?.themeId &&
+    latest.updatedAt === state?.updatedAt;
+}
+async function inject(state) {
+  const target = await locateTarget();
+  // A watcher iteration may have captured the preceding selection while another
+  // launcher instance has already saved a newer image. Never let that stale turn
+  // overwrite the newer theme.
+  if (!isCurrentEnabledTheme(state)) {
+    return { injected: false, skipped: true, reason: 'stale-state' };
+  }
+  const existing = await evaluate(target, inspectExpression);
+  if (existing?.injected === true && existing.themeId === state.themeId) {
+    return { ...existing, unchanged: true };
+  }
+  // Recheck after the asynchronous inspection before writing CSS into Codex.
+  if (!isCurrentEnabledTheme(state)) {
+    return { injected: false, skipped: true, reason: 'stale-state' };
+  }
+  return evaluate(target, injectExpression(state));
+}
 async function remove() { return evaluate(await locateTarget(), removeExpression); }
 function controllerRunning() { try { const pid = Number(readFileSync(pidPath, 'utf8')); process.kill(pid, 0); return true; } catch { return false; } }
 function startController() { if (controllerRunning()) return; const child = spawn(process.execPath, [scriptPath, 'watch'], { detached: true, stdio: 'ignore', windowsHide: true }); child.unref(); writeFileSync(pidPath, String(child.pid), 'utf8'); }
