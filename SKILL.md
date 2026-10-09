@@ -19,7 +19,7 @@ description: Create, apply, inspect, pause, or restore a local image skin for Co
 
 ## 交互与失败处理
 
-启动器提供图片预览、连接检查、应用和恢复。支持 PNG、JPG/JPEG、BMP、WebP，单张限制 8 MB。启动器状态会按“待连接 → 检测中 → 已连接 → 已应用”变化；只有连接检查成功后才启用“应用到 Codex”。界面使用中文系统字体优先、明确的前景色和不透明工作台保障控件可读性，用户消息固定为深底白字。
+启动器提供图片预览、连接检查、应用和恢复。支持 PNG、JPG/JPEG、BMP、WebP，单张限制 8 MB。启动器状态会按“待连接 → 检测中 → 已连接 → 已应用”变化；选图成功后将本地路径保存到 `runtime/launcher-selection.json`；重启时恢复预览并启用“应用到 Codex”，点击后由引擎自动检查连接。启动时不执行换肤；图片丢失、无法解码或记录损坏时禁用应用并提示重新选择。界面使用中文系统字体优先、明确的前景色和不透明工作台保障控件可读性，用户消息固定为深底白字。
 
 完整包附带 `assets/dabin-codex-skin-icon.ico`。若用户要创建桌面快捷方式，可将该图标用于 `StartDabinSkin.bat` 的快捷方式；图标用掀开的主题层和右下角 Codex 徽章表达本 Skill 的本地换肤功能，不影响脚本行为。
 

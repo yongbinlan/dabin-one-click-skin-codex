@@ -6,6 +6,8 @@ Add-Type -AssemblyName System.Drawing
 
 $scriptRoot = $PSScriptRoot
 $packageRoot = Split-Path -Parent $scriptRoot
+. (Join-Path $scriptRoot 'LauncherSelection.ps1')
+$selectionPath = Join-Path $packageRoot 'runtime\launcher-selection.json'
 $backgroundPath = Join-Path $packageRoot 'assets\default-launcher-background-960x720.png'
 $script:selectedImage = $null
 $script:connectionReady = $false
@@ -94,7 +96,7 @@ $topRule.SetBounds(0, 0, 910, 4)
 $topRule.BackColor = [Drawing.Color]::FromArgb(181, 47, 39)
 $workbench.Controls.Add($topRule)
 $workbench.Controls.Add((New-Label '主题工作台' 18 14 160 23 12 ([Drawing.Color]::FromArgb(61, 40, 32)) $true))
-$workbench.Controls.Add((New-Label '选择图片 → 检查连接 → 应用主题' 18 37 360 18 10 ([Drawing.Color]::FromArgb(105, 59, 46)) $true))
+$workbench.Controls.Add((New-Label '选择或恢复图片 → 应用主题' 18 37 360 18 10 ([Drawing.Color]::FromArgb(105, 59, 46)) $true))
 
 $previewFrame = New-Object Windows.Forms.Panel
 $previewFrame.SetBounds(18, 57, 144, 112)
@@ -129,7 +131,7 @@ $apply = New-Button '应用到 Codex' 684 74 204 ([Drawing.Color]::FromArgb(181,
 $apply.Enabled = $false
 $apply.BackColor = [Drawing.Color]::FromArgb(216, 190, 171)
 $apply.ForeColor = [Drawing.Color]::FromArgb(75, 43, 35)
-$actionInfo = New-Label "连接成功后才可应用主题。`n不会改写 Codex 程序文件。" 490 130 398 38 10 ([Drawing.Color]::FromArgb(94, 56, 44))
+$actionInfo = New-Label "点击应用时会自动检查连接。`n不会改写 Codex 程序文件。" 490 130 398 38 10 ([Drawing.Color]::FromArgb(94, 56, 44))
 $workbench.Controls.AddRange(@($check, $apply, $actionInfo))
 
 $statusBar = New-Object Windows.Forms.Panel
@@ -172,6 +174,7 @@ function Set-Status([string]$Text, [string]$Kind = 'ready') {
 }
 
 function Show-Preview([string]$Path) {
+  $Path = Get-LauncherImagePath $Path
   $image = [Drawing.Image]::FromFile($Path)
   try { $copy = $image.Clone() } finally { $image.Dispose() }
   if ($preview.Image) { $preview.Image.Dispose() }
@@ -198,9 +201,12 @@ function Select-ThemeImage {
       $script:connectionReady = $false
       $size = [Math]::Round((Get-Item -LiteralPath $dialog.FileName).Length / 1MB, 2)
       $fileTitle.Text = [IO.Path]::GetFileName($dialog.FileName)
-      $fileInfo.Text = "$size MB  ·  图片已准备好`n下一步：检查 Codex 主窗口连接。"
-      Set-ApplyEnabled $false
-      Set-Status '图片已准备好。下一步请检查 Codex 主窗口连接。' 'ready'
+      $fileInfo.Text = "$size MB  ·  图片已准备好`n可直接点击应用到 Codex。"
+      Set-ApplyEnabled $true
+      try {
+        Save-LauncherSelection $selectionPath $script:selectedImage
+        Set-Status '图片已记住，可直接应用到 Codex。' 'ready'
+      } catch { Set-Status '本次可应用，但选图记录保存失败。' 'error' }
     } catch { Set-Status "无法读取这张图片：$($_.Exception.Message)" 'error' }
   }
   $dialog.Dispose()
@@ -223,13 +229,14 @@ $check.Add_Click({
     Set-Status '连接正常：已发现 Codex 主窗口，可以应用主题。' 'connected'
   } else {
     $script:connectionReady = $false
+    Set-ApplyEnabled ([bool]$script:selectedImage)
     Set-Status ($result.Output -replace '\s+', ' ') 'error'
   }
 })
 
 $apply.Add_Click({
   if (-not $script:selectedImage) { Set-Status '请先选择一张主题图片。' 'error'; return }
-  if (-not $script:connectionReady) { Set-Status '请先检查 Codex 主窗口连接。' 'error'; return }
+  try { [void](Get-LauncherImagePath $script:selectedImage) } catch { Set-ApplyEnabled $false; Set-Status '图片已不可用，请重新选择。' 'error'; return }
   $check.Enabled = $false
   Set-ApplyEnabled $false
   Set-Status '正在注入主题并启动本地控制器…' 'working'
@@ -240,6 +247,7 @@ $apply.Add_Click({
     Set-Status '已应用。请回到 Codex 检查背景与文字对比度。' 'applied'
   } else {
     $script:connectionReady = $false
+    Set-ApplyEnabled ([bool]$script:selectedImage)
     Set-Status ($result.Output -replace '\s+', ' ') 'error'
   }
 })
@@ -251,9 +259,26 @@ $restore.Add_Click({
   $result = Invoke-Engine 'Restore'
   $check.Enabled = $true
   $script:connectionReady = $false
-  if ($result.ExitCode -eq 0) { Set-Status '已恢复原生界面。需要再次检查连接后才能应用。' 'ready' }
+  Set-ApplyEnabled ([bool]$script:selectedImage)
+  if ($result.ExitCode -eq 0) { Set-Status '已恢复原生界面。保留图片选择，可再次应用。' 'ready' }
   else { Set-Status ($result.Output -replace '\s+', ' ') 'error' }
 })
+
+try {
+  $remembered = Read-LauncherSelection $selectionPath
+  if ($remembered) {
+    Show-Preview $remembered
+    $script:selectedImage = $remembered
+    $fileTitle.Text = [IO.Path]::GetFileName($remembered)
+    $fileInfo.Text = '已恢复上次图片，可直接应用。'
+    Set-ApplyEnabled $true
+    Set-Status '已恢复上次图片，可直接应用到 Codex。' 'ready'
+  }
+} catch {
+  $script:selectedImage = $null
+  Set-ApplyEnabled $false
+  Set-Status '上次图片或记录不可用，请重新选择。' 'error'
+}
 
 $form.Add_FormClosed({
   if ($preview.Image) { $preview.Image.Dispose() }
